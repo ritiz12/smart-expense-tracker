@@ -40,8 +40,16 @@ public class ExpensesAPI {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/total-expenses-amount")
+    public ResponseEntity<GetTotalExpensesAmountResponse> totalExpensesAmount()
+    {
+        final var response  = expensesService.totalExpensesAmount();
+        return ResponseEntity.ok(response);
+    }
 
-
-
-
+    @GetMapping("/categoryWise-total-amount")
+    public ResponseEntity<GetCategoriesWiseTotalExpensesResponse> categoryWiseTotalAmount(){
+       final var response = expensesService.categoryWiseTotalAmount();
+       return ResponseEntity.ok(response);
+    }
 }

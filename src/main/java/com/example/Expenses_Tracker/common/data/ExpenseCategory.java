@@ -5,5 +5,6 @@ public enum ExpenseCategory {
     Travel,
     Bills,
     Shopping,
-    Medical
+    Medical,
+    Miscellaneous
 }

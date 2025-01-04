@@ -1,5 +1,6 @@
 package com.example.Expenses_Tracker.expenses.core;
 
+import com.example.Expenses_Tracker.common.data.ExpenseCategory;
 import com.example.Expenses_Tracker.expenses.data.*;
 import com.example.Expenses_Tracker.expenses.entity.Expenses;
 import com.example.Expenses_Tracker.expenses.repositiory.ExpensesRepository;
@@ -10,9 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.math.BigDecimal;
+import java.util.*;
 
 @Service
 public class ExpensesService {
@@ -44,6 +44,32 @@ public class ExpensesService {
        var response = new AddExpensesResponse();
        response.addExpenseData(summary);
        return response ;
+    }
+    public GetCategoriesWiseTotalExpensesResponse categoryWiseTotalAmount() {
+        User cuurentUser = userService.getCurrentUser();
+
+        User user = userRepository.findById(cuurentUser.getUserId())
+                                  .orElseThrow(() -> new RuntimeException("user not found"));
+
+        List<Expenses> userExpenses = expensesRepository.findByUser(user);
+
+        Map<String , BigDecimal> categoryTotals = new HashMap<>();
+
+        for(Expenses expenses : userExpenses){
+            categoryTotals.put(expenses.getCategory().toString(),
+                               categoryTotals.getOrDefault(expenses.getCategory().toString(), BigDecimal.valueOf(0.0)).add(expenses.getAmount()));
+        }
+
+final var response = new GetCategoriesWiseTotalExpensesResponse();
+
+        categoryTotals.forEach((category, totalAmount) -> {
+            GetCategorieswiseTotalExpensesSummary summary = new GetCategorieswiseTotalExpensesSummary(
+                ExpenseCategory.valueOf(category), totalAmount);
+            response.addCategoryWiseAmount(summary);
+        });
+
+        return response;
+
     }
 
     public String deleteExpenses(final Long expensesId) {
@@ -82,6 +108,26 @@ public class ExpensesService {
             response.addExpenseData(summary);
         }
        return response;
+
+    }
+    public GetTotalExpensesAmountResponse totalExpensesAmount() {
+        User cuurentUser = userService.getCurrentUser();
+
+        User user = userRepository.findById(cuurentUser.getUserId())
+                                  .orElseThrow(() -> new RuntimeException("user not found"));
+
+        List<Expenses> userExpenses = expensesRepository.findByUser(user);
+        BigDecimal totalAmount = BigDecimal.ZERO;
+        for(Expenses expenses : userExpenses )
+        {
+            totalAmount = totalAmount.add(expenses.getAmount());
+        }
+
+        GetTotalExpensesAmountResponse response = new GetTotalExpensesAmountResponse();
+        response.setTotalAmount(totalAmount);
+
+        return response ;
+
 
     }
 
