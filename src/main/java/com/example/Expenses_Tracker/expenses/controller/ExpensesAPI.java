@@ -52,4 +52,17 @@ public class ExpensesAPI {
        final var response = expensesService.categoryWiseTotalAmount();
        return ResponseEntity.ok(response);
     }
+
+    @GetMapping("/generate-monthly-expenses")
+    public ResponseEntity<byte[]> generateMonthlyExpensesPdf(@RequestBody GenerateMonthlyExpensesRequest generateMonthlyExpensesRequest){
+       return expensesService.generateMonthlyExpenses(generateMonthlyExpensesRequest);
+    }
+
+    @GetMapping("generate-expenses")
+    public ResponseEntity<byte[]> generateExpense(@RequestBody GenerateExpenseRequest generateExpenseRequest)
+    {
+        return expensesService.generateExpensePdf(generateExpenseRequest);
+    }
+
+
 }

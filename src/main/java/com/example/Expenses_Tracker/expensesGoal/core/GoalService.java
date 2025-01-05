@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.example.Expenses_Tracker.user.entity.User;
 
+import java.util.List;
 import java.util.Objects;
 
 @Service
@@ -59,6 +60,25 @@ public class GoalService {
 
         return "Goal delete successfully.";
     }
+
+    public GetGoalResponse getGoal() {
+
+        User cuurentUser = userService.getCurrentUser();
+
+        User user = userRepository.findById(cuurentUser.getUserId())
+                                  .orElseThrow(() -> new RuntimeException("user not found"));
+
+
+        List<Goal> goals = goalRepositiory.findByUser(user);
+        final var response = new GetGoalResponse();
+        for(Goal goal : goals)
+        {
+            GetGoalSummary summary = new GetGoalSummary(goal.getGoalId(), goal.getCategory() , goal.getTimePeriod(),goal.getAmount());
+            response.addGoalData(summary);
+        }
+        return response;
+    }
+
     public UpdateGoalResponse updateGoal(final UpdateGoalRequest updateGoalRequest) {
 
         User cuurentUser = userService.getCurrentUser();

@@ -1,10 +1,7 @@
 package com.example.Expenses_Tracker.expensesGoal.controller;
 
 import com.example.Expenses_Tracker.expensesGoal.core.GoalService;
-import com.example.Expenses_Tracker.expensesGoal.data.AddGoalRequest;
-import com.example.Expenses_Tracker.expensesGoal.data.AddGoalResponse;
-import com.example.Expenses_Tracker.expensesGoal.data.UpdateGoalRequest;
-import com.example.Expenses_Tracker.expensesGoal.data.UpdateGoalResponse;
+import com.example.Expenses_Tracker.expensesGoal.data.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -36,6 +33,10 @@ public class GoalAPI {
         return ResponseEntity.ok(response);
     }
 
-
-
+    @GetMapping("/get-user-goal")
+    ResponseEntity<GetGoalResponse> getUserGoal()
+    {
+        final var response = goalService.getGoal();
+        return ResponseEntity.ok(response);
+    }
 }
