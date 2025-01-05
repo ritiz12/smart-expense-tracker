@@ -64,5 +64,19 @@ public class ExpensesAPI {
         return expensesService.generateExpensePdf(generateExpenseRequest);
     }
 
+    @GetMapping("dateWise-expenses")
+    public ResponseEntity<GetExpensesResponse> getDateWiseExpenses(@RequestBody GetDateWiseExpenseRequest getDateWiseExpenseRequest)
+    {
+        final var response = expensesService.getDateWiseExpenses(getDateWiseExpenseRequest);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("month-wise-expenses")
+    public ResponseEntity<GetExpensesResponse> getMonthWiseExpenses(@RequestBody GetMonthWiseExpenseRequest getMonthWiseExpenseRequest)
+    {
+        final var response = expensesService.getMonthWiseExpenses(getMonthWiseExpenseRequest);
+        return ResponseEntity.ok(response);
+    }
+
 
 }

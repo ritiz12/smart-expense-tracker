@@ -108,6 +108,29 @@ final var response = new GetCategoriesWiseTotalExpensesResponse();
                              .body(pdfContent);
     }
 
+    public GetExpensesResponse getDateWiseExpenses(final GetDateWiseExpenseRequest getExpensesRequest) {
+         List<Expenses> expenses =  getExpenseListForParticularDate(getExpensesRequest.getDate()) ;
+         final var response = new GetExpensesResponse();
+         for(Expenses expense : expenses)
+         {
+             GetExpensesSummary summary = new GetExpensesSummary(expense.getAmount() ,expense.getCategory() , expense.getDescription(), expense.getDate());
+             response.addExpenseData(summary);
+         }
+         return response;
+    }
+
+    public GetExpensesResponse getMonthWiseExpenses(final GetMonthWiseExpenseRequest getMonthWiseExpenseRequest) {
+        YearMonth monthName = YearMonth.parse(getMonthWiseExpenseRequest.getMonthName(), DateTimeFormatter.ofPattern("yyyy-MM"));
+       List<Expenses> expenses = getExpensesListForParticularMonth(monthName);
+        final var response = new GetExpensesResponse();
+        for(Expenses expense : expenses)
+        {
+            GetExpensesSummary summary = new GetExpensesSummary(expense.getAmount() ,expense.getCategory() , expense.getDescription(), expense.getDate());
+            response.addExpenseData(summary);
+        }
+        return response;
+    }
+
     private List<Expenses> getExpenseListForParticularDate(final Date date) {
         User cuurentUser = userService.getCurrentUser();
 
