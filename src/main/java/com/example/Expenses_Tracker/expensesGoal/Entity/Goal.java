@@ -17,6 +17,7 @@ public class Goal {
     private Long goalId;
 
     @Enumerated(EnumType.STRING)
+
     @Column(name="category")
     private ExpenseCategory category ;
 
