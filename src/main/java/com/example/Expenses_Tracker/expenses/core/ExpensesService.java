@@ -35,25 +35,25 @@ public class ExpensesService {
     @Autowired
     private PdfGeneratorService pdfGeneratorService;
 
-    
-   public AddExpensesResponse addExpenses(final AddExpensesRequest addExpensesRequest) {
-       User currentUser = userService.getCurrentUser();
+    public AddExpensesResponse addExpenses(final AddExpensesRequest addExpensesRequest) {
+        User currentUser = userService.getCurrentUser();
 
-       User user = userRepository.findById(currentUser.getUserId())
-                                 .orElseThrow(() -> new RuntimeException("user not found"));
+        User user = userRepository.findById(currentUser.getUserId())
+                                  .orElseThrow(() -> new RuntimeException("user not found"));
 
-       Expenses expenses = new Expenses();
-       expenses.setAmount(addExpensesRequest.getAmount());
-       expenses.setDescription(addExpensesRequest.getDescription());
-       expenses.setCategory(addExpensesRequest.getCategory());
-       expenses.setDate(addExpensesRequest.getDate());
-       expenses.setUser(user);
-       expensesRepository.save(expenses);
-       AddExpensesSummary summary = new AddExpensesSummary(expenses.getAmount() , expenses.getCategory() , expenses.getDescription() , expenses.getDate());
-       var response = new AddExpensesResponse();
-       response.addExpenseData(summary);
-       return response ;
+        Expenses expenses = new Expenses();
+        expenses.setAmount(addExpensesRequest.getAmount());
+        expenses.setDescription(addExpensesRequest.getDescription());
+        expenses.setCategory(addExpensesRequest.getCategory());
+        expenses.setDate(addExpensesRequest.getDate());
+        expenses.setUser(user);
+        expensesRepository.save(expenses);
+        AddExpensesSummary summary = new AddExpensesSummary(expenses.getAmount(), expenses.getCategory(), expenses.getDescription(), expenses.getDate());
+        var response = new AddExpensesResponse();
+        response.addExpenseData(summary);
+        return response;
     }
+
     public GetCategoriesWiseTotalExpensesResponse categoryWiseTotalAmount() {
         User cuurentUser = userService.getCurrentUser();
 
@@ -62,14 +62,14 @@ public class ExpensesService {
 
         List<Expenses> userExpenses = expensesRepository.findByUser(user);
 
-        Map<String , BigDecimal> categoryTotals = new HashMap<>();
+        Map<String, BigDecimal> categoryTotals = new HashMap<>();
 
-        for(Expenses expenses : userExpenses){
+        for (Expenses expenses : userExpenses) {
             categoryTotals.put(expenses.getCategory().toString(),
                                categoryTotals.getOrDefault(expenses.getCategory().toString(), BigDecimal.valueOf(0.0)).add(expenses.getAmount()));
         }
 
-final var response = new GetCategoriesWiseTotalExpensesResponse();
+        final var response = new GetCategoriesWiseTotalExpensesResponse();
 
         categoryTotals.forEach((category, totalAmount) -> {
             GetCategorieswiseTotalExpensesSummary summary = new GetCategorieswiseTotalExpensesSummary(
@@ -88,9 +88,9 @@ final var response = new GetCategoriesWiseTotalExpensesResponse();
                                   .orElseThrow(() -> new RuntimeException("user not found"));
 
         Expenses expense = expensesRepository.findById(expensesId)
-                                             .orElseThrow(() -> new  RuntimeException("Expenses not found."));
+                                             .orElseThrow(() -> new RuntimeException("Expenses not found."));
 
-        if(!Objects.equals(expense.getUser().getUserId(), user.getUserId())){
+        if (!Objects.equals(expense.getUser().getUserId(), user.getUserId())) {
             throw new RuntimeException("Unauthorized to delete this expense.");
         }
         expensesRepository.delete(expense);
@@ -99,7 +99,7 @@ final var response = new GetCategoriesWiseTotalExpensesResponse();
     }
 
     public ResponseEntity<byte[]> generateExpensePdf(final GenerateExpenseRequest generateExpenseRequest) {
-      List<Expenses> expensesList = getExpenseListForParticularDate(generateExpenseRequest.getDate());
+        List<Expenses> expensesList = getExpenseListForParticularDate(generateExpenseRequest.getDate());
         byte[] pdfContent = pdfGeneratorService.generatePdfOfExpenses(expensesList);
 
         return ResponseEntity.ok()
@@ -109,23 +109,21 @@ final var response = new GetCategoriesWiseTotalExpensesResponse();
     }
 
     public GetExpensesResponse getDateWiseExpenses(final GetDateWiseExpenseRequest getExpensesRequest) {
-         List<Expenses> expenses =  getExpenseListForParticularDate(getExpensesRequest.getDate()) ;
-         final var response = new GetExpensesResponse();
-         for(Expenses expense : expenses)
-         {
-             GetExpensesSummary summary = new GetExpensesSummary(expense.getAmount() ,expense.getCategory() , expense.getDescription(), expense.getDate());
-             response.addExpenseData(summary);
-         }
-         return response;
+        List<Expenses> expenses = getExpenseListForParticularDate(getExpensesRequest.getDate());
+        final var response = new GetExpensesResponse();
+        for (Expenses expense : expenses) {
+            GetExpensesSummary summary = new GetExpensesSummary(expense.getAmount(), expense.getCategory(), expense.getDescription(), expense.getDate());
+            response.addExpenseData(summary);
+        }
+        return response;
     }
 
     public GetExpensesResponse getMonthWiseExpenses(final GetMonthWiseExpenseRequest getMonthWiseExpenseRequest) {
         YearMonth monthName = YearMonth.parse(getMonthWiseExpenseRequest.getMonthName(), DateTimeFormatter.ofPattern("yyyy-MM"));
-       List<Expenses> expenses = getExpensesListForParticularMonth(monthName);
+        List<Expenses> expenses = getExpensesListForParticularMonth(monthName);
         final var response = new GetExpensesResponse();
-        for(Expenses expense : expenses)
-        {
-            GetExpensesSummary summary = new GetExpensesSummary(expense.getAmount() ,expense.getCategory() , expense.getDescription(), expense.getDate());
+        for (Expenses expense : expenses) {
+            GetExpensesSummary summary = new GetExpensesSummary(expense.getAmount(), expense.getCategory(), expense.getDescription(), expense.getDate());
             response.addExpenseData(summary);
         }
         return response;
@@ -136,15 +134,15 @@ final var response = new GetCategoriesWiseTotalExpensesResponse();
 
         User user = userRepository.findById(cuurentUser.getUserId())
                                   .orElseThrow(() -> new RuntimeException("user not found"));
-        List<Expenses> expenses = expensesRepository.findByUserAndDate(user , date);
+        List<Expenses> expenses = expensesRepository.findByUserAndDate(user, date);
         return expenses;
 
     }
 
     public ResponseEntity<byte[]> generateMonthlyExpenses(final GenerateMonthlyExpensesRequest generateMonthlyExpensesRequest) {
         YearMonth monthName = YearMonth.parse(generateMonthlyExpensesRequest.getMonthName(), DateTimeFormatter.ofPattern("yyyy-MM"));
-      List<Expenses>  expenseList = getExpensesListForParticularMonth(monthName);
-      byte[] pdfContent = pdfGeneratorService.generatePdfOfExpenses(expenseList);
+        List<Expenses> expenseList = getExpensesListForParticularMonth(monthName);
+        byte[] pdfContent = pdfGeneratorService.generatePdfOfExpenses(expenseList);
 
         return ResponseEntity.ok()
                              .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=expenses_receipt.pdf")
@@ -159,16 +157,16 @@ final var response = new GetCategoriesWiseTotalExpensesResponse();
                                   .orElseThrow(() -> new RuntimeException("user not found"));
         LocalDate startDate = monthName.atDay(1);
         LocalDate endDate = monthName.atEndOfMonth();
-        List<Expenses> userExpenses = expensesRepository.findByUserAndDateRange(user,java.sql.Date.valueOf(startDate),
-                                                                            java.sql.Date.valueOf(endDate));
+        List<Expenses> userExpenses = expensesRepository.findByUserAndDateRange(user, java.sql.Date.valueOf(startDate),
+                                                                                java.sql.Date.valueOf(endDate));
         return userExpenses;
     }
 
     public GetExpensesResponse getExpensesList() {
-       User cuurentUser = userService.getCurrentUser();
+        User cuurentUser = userService.getCurrentUser();
 
-       User user = userRepository.findById(cuurentUser.getUserId())
-           .orElseThrow(() -> new RuntimeException("user not found"));
+        User user = userRepository.findById(cuurentUser.getUserId())
+                                  .orElseThrow(() -> new RuntimeException("user not found"));
 
         List<Expenses> userExpenses = expensesRepository.findByUser(user);
         var response = new GetExpensesResponse();
@@ -182,7 +180,7 @@ final var response = new GetCategoriesWiseTotalExpensesResponse();
             );
             response.addExpenseData(summary);
         }
-       return response;
+        return response;
 
     }
     public GetTotalExpensesAmountResponse totalExpensesAmount() {
@@ -193,16 +191,14 @@ final var response = new GetCategoriesWiseTotalExpensesResponse();
 
         List<Expenses> userExpenses = expensesRepository.findByUser(user);
         BigDecimal totalAmount = BigDecimal.ZERO;
-        for(Expenses expenses : userExpenses )
-        {
+        for (Expenses expenses : userExpenses) {
             totalAmount = totalAmount.add(expenses.getAmount());
         }
 
         GetTotalExpensesAmountResponse response = new GetTotalExpensesAmountResponse();
         response.setTotalAmount(totalAmount);
 
-        return response ;
-
+        return response;
 
     }
 
@@ -214,25 +210,24 @@ final var response = new GetCategoriesWiseTotalExpensesResponse();
                                   .orElseThrow(() -> new RuntimeException("user not found"));
 
         Expenses expense = expensesRepository.findById(updateExpensesRequest.getExpensesId())
-            .orElseThrow(() -> new  RuntimeException("Expenses not found."));
+                                             .orElseThrow(() -> new RuntimeException("Expenses not found."));
 
-        if(!Objects.equals(expense.getUser().getUserId(), user.getUserId())){
+        if (!Objects.equals(expense.getUser().getUserId(), user.getUserId())) {
             throw new RuntimeException("Unauthorized to update this expense.");
         }
-        if(updateExpensesRequest.getAmount() != null)
-        {
-             expense.setAmount(updateExpensesRequest.getAmount());
+        if (updateExpensesRequest.getAmount() != null) {
+            expense.setAmount(updateExpensesRequest.getAmount());
         }
 
-        if(updateExpensesRequest.getCategory() != null){
+        if (updateExpensesRequest.getCategory() != null) {
             expense.setCategory(updateExpensesRequest.getCategory());
         }
 
-        if(updateExpensesRequest.getDescription() != null){
+        if (updateExpensesRequest.getDescription() != null) {
             expense.setDescription(updateExpensesRequest.getDescription());
         }
 
-        if(updateExpensesRequest.getDate() != null){
+        if (updateExpensesRequest.getDate() != null) {
             expense.setDate(updateExpensesRequest.getDate());
         }
 
@@ -248,7 +243,6 @@ final var response = new GetCategoriesWiseTotalExpensesResponse();
         var response = new UpdateExpensesResponse();
         response.addExpenses(summary);
         return response;
-
 
     }
 }
