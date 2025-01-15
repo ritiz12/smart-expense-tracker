@@ -1,5 +1,7 @@
 package com.example.Expenses_Tracker.expensesGoal.core;
 
+import com.example.Expenses_Tracker.expenses.entity.Expenses;
+import com.example.Expenses_Tracker.expenses.repositiory.ExpensesRepository;
 import com.example.Expenses_Tracker.expensesGoal.Entity.Goal;
 import com.example.Expenses_Tracker.expensesGoal.data.*;
 import com.example.Expenses_Tracker.expensesGoal.repositiory.GoalRepositiory;
@@ -9,8 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.example.Expenses_Tracker.user.entity.User;
 
-import java.util.List;
-import java.util.Objects;
+import java.math.BigDecimal;
+import java.util.*;
 
 @Service
 public class GoalService {
@@ -23,6 +25,9 @@ public class GoalService {
 
     @Autowired
     UserService userService ;
+
+    @Autowired
+    ExpensesRepository expensesRepository;
 
     public AddGoalResponse addGoal(final AddGoalRequest addGoalRequest) {
 
@@ -78,6 +83,50 @@ public class GoalService {
         }
         return response;
     }
+
+    public GetGoalAlertResponse getGoalAlert() {
+        User currentUser = userService.getCurrentUser();
+
+        User user = userRepository.findById(currentUser.getUserId())
+                                  .orElseThrow(() -> new RuntimeException("user not found"));
+
+        List<Goal> goals = goalRepositiory.findByUser(user);
+        List<Expenses> expenses = expensesRepository.findByUser(user);
+
+        // Create a map to store total expenses per category in BigDecimal
+        Map<String, BigDecimal> totalCategoryExpenses = new HashMap<>();
+
+        // Calculate total expenses per category in BigDecimal
+        for (Expenses expense : expenses) {
+            String expenseCategory = String.valueOf(expense.getCategory());
+            BigDecimal expenseAmount = expense.getAmount();
+
+            // Sum the expenses for each category
+            totalCategoryExpenses.put(expenseCategory, totalCategoryExpenses.getOrDefault(expenseCategory, BigDecimal.ZERO).add(expenseAmount));
+        }
+        final var response = new GetGoalAlertResponse();
+      String alerts = "";
+
+        // Check if the user has reached 80% of their goal in any category
+        for (Goal goal : goals) {
+            String goalCategory = String.valueOf(goal.getCategory());
+            BigDecimal goalAmount = goal.getAmount();  // Assuming `amount` is the goal amount for the category
+
+            // Get total expenses for the category
+            BigDecimal totalSpent = totalCategoryExpenses.getOrDefault(goalCategory, BigDecimal.ZERO);
+
+            // Check if the user has spent 80% or more of the goal amount in BigDecimal
+            BigDecimal threshold = goalAmount.multiply(new BigDecimal("0.2"));
+            if (totalSpent.compareTo(threshold) >= 0) {
+                alerts = "You have spent 80% or more of your goal amount in the category '" + goalCategory + "'. Please review your spending.";
+                final var summary = new GetGoalAlertSummary(alerts,"");
+                response.addGoalAlert(summary);
+            }
+        }
+
+        return response;
+    }
+
 
     public UpdateGoalResponse updateGoal(final UpdateGoalRequest updateGoalRequest) {
 

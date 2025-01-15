@@ -39,4 +39,11 @@ public class GoalAPI {
         final var response = goalService.getGoal();
         return ResponseEntity.ok(response);
     }
+
+   @GetMapping("/goal-alert")
+    ResponseEntity<GetGoalAlertResponse> getGoalAlert()
+   {
+       final var response = goalService.getGoalAlert();
+       return ResponseEntity.ok(response);
+   }
 }
